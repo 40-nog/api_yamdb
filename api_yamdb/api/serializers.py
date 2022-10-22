@@ -7,6 +7,7 @@ from users.models import User
 
 
 class TitleSerializer(serializers.ModelSerializer):
+    """Сериализатор для произведений."""
 
     class Meta:
         fields = '__all__'
@@ -20,6 +21,7 @@ class TitleSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    """Сериализатор отзывов."""
 
     author = serializers.SlugRelatedField(
         read_only=True,
@@ -33,6 +35,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    """Сериализатор комментариев."""
 
     author = serializers.SlugRelatedField(
         read_only=True,
@@ -46,6 +49,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    """Сериализатор категорий."""
 
     class Meta:
         fields = '__all__'
@@ -53,6 +57,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class GenreSerializer(serializers.ModelSerializer):
+    """Сериализатор жанров."""
 
     class Meta:
         fields = '__all__'
@@ -60,6 +65,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """Сериализатор пользователей."""
 
     class Meta:
         fields = '__all__'

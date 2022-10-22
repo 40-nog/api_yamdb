@@ -8,12 +8,20 @@ from users.models import User
 
 
 class TitleViewSet(viewsets.ModelViewSet):
+    """
+    Обработка операций с произведениями.
+    """
+
     queryset = Title.objects.all()
     serializer_class = serializers.TitleSerializer
     permission_classes = permissions.IsAdminOrReadOnly
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
+    """
+    Обработка операций с отзывами.
+    """
+
     serializer_class = serializers.ReviewSerializer
     permission_classes = permissions.IsStaffOrAuthorOrReadOnly
 
@@ -27,18 +35,30 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class GenreViewSet(mixins.ListCreateDeleteViewSet):
+    """
+    Обработка операций с жанрами.
+    """
+
     queryset = Genre.objects.all()
     serializer_class = serializers.GenreSerializer
     permission_classes = permissions.IsAdminOrReadOnly
 
 
 class CategoryViewSet(mixins.ListCreateDeleteViewSet):
+    """
+    Обработка операций с категориями.
+    """
+
     queryset = Category.objects.all()
     serializer_class = serializers.CategorySerializer
     permission_classes = permissions.IsAdminOrReadOnly
 
 
 class CommentViewSet(viewsets.ModelViewSet):
+    """
+    Обработка операций с комментариями.
+    """
+
     serializer_class = serializers.CommentSerializer
     permission_classes = permissions.IsStaffOrAuthorOrReadOnly
 
@@ -52,12 +72,22 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class UserViewSet(viewsets.ModelViewSet):
+    """
+    Обработка операций с пользователями.
+    """
+
     queryset = User.objects.all()
     serializer_class = serializers.UserSerializer
     permission_classes = IsAdminUser
 
 
 class MyProfileViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+    """
+    Запрос и изменение данных своего профиля.
+    """
+
     serializer_class = serializers.UserSerializer
     permission_classes = permissions.PatchOrReadOnly
+
+    def get_queryset(self):
+        return self.request.user

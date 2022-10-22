@@ -17,6 +17,9 @@ class IsAdminOrReadOnly(AllowAny):
 
 
 class IsStaffOrAuthorOrReadOnly(IsAuthenticatedOrReadOnly):
+    """
+    Только администратору, модератору или автору разрешается редактирование.
+    """
 
     def has_object_permission(self, request, view, obj):
         return (
@@ -27,9 +30,11 @@ class IsStaffOrAuthorOrReadOnly(IsAuthenticatedOrReadOnly):
 
 
 class PatchOrReadOnly(IsAuthenticated):
+    """Разрешено только чтение и частичное редактирование своего профиля."""
+
     def has_object_permission(self, request, view, obj):
         return (
             request.method in ('GET', 'PATCH')
-            and obj.author == request.user
+            and obj == request.user
         )
         # Здесь возможна ошибка из-за приоритетности операций.
