@@ -64,3 +64,10 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = User
+
+    def validate_role(self, value):
+        if self.context['request'].user.role in ('admin', value):
+            raise serializers.ValidationError(
+                'Менять роль может только администратор!'
+            )
+        return value
