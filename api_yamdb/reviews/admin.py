@@ -10,8 +10,9 @@ class GenreAdmin(admin.ModelAdmin):
     list_display = ('pk', 'name', 'slug')
 
 
-class TitleAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'name', 'year', 'rating', 'description', 'genre', 'category')
+# class TitleAdmin(admin.ModelAdmin):
+#     list_display = (
+#         'pk', 'name', 'year', 'rating', 'description', 'genre', 'category')
 
 
 class ReviewAdmin(admin.ModelAdmin):
@@ -24,6 +25,6 @@ class CommentAdmin(admin.ModelAdmin):
 
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Genre, GenreAdmin)
-admin.site.register(Title, TitleAdmin)
+# admin.site.register(Title, TitleAdmin)
 admin.site.register(Review, ReviewAdmin)
 admin.site.register(Comment, CommentAdmin)

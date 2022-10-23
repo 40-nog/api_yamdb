@@ -1,6 +1,5 @@
 from datetime import datetime
 from rest_framework import serializers
-from api_yamdb.users.models import User
 
 from reviews.models import Title, Review, Comment, Category, Genre
 from users.models import User
