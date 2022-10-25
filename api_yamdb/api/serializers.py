@@ -2,7 +2,7 @@ from datetime import datetime
 from rest_framework import serializers
 
 from reviews.models import Title, Review, Comment, Category, Genre
-from users.models import User
+from users.models import User, UserCode
 
 
 class TitleSerializer(serializers.ModelSerializer):
@@ -76,3 +76,19 @@ class UserSerializer(serializers.ModelSerializer):
                 'Менять роль может только администратор!'
             )
         return value
+
+
+class UserSignup(serializers.ModelSerializer):
+    """Сериализатор регистрации пользователя."""
+
+    class Meta:
+        fields = ('username', 'email', )
+        model = User
+
+
+class UserToken(serializers.ModelSerializer):
+    """Сериализатор для получения токена."""
+
+    class Meta:
+        fields = ('username', 'confirmation_code', )
+        model = UserCode

@@ -8,3 +8,9 @@ class ListCreateDeleteViewSet(mixins.ListModelMixin,
     """Вьюсет для получение списка, создание и удаление данных."""
 
     pass
+
+
+class CreateViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
+    """Вьюсет только для создания объекта."""
+
+    pass

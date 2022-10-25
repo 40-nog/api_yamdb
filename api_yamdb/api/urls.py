@@ -7,6 +7,7 @@ from api import views
 app_name = 'api'
 
 router_v1 = routers.DefaultRouter()
+router_v1.register('auth/signup', views.UserSignup)
 router_v1.register('users', views.UserViewSet)
 router_v1.register(
     'users/me',
