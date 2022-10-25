@@ -22,4 +22,4 @@ class UserCode(models.Model):
         User,
         on_delete=models.CASCADE,
     )
-    confirmation_code = models.TextField(max_length=10)
+    confirmation_code = models.CharField(max_length=10)

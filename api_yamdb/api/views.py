@@ -137,4 +137,4 @@ class UserToken(APIView):
                 username=serializer.data['username']
             )
             cur_token = default_token_generator.make_token(user)
-            return Response({'token': cur_token})
+            return Response({"token": cur_token})

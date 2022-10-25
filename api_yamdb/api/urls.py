@@ -30,4 +30,5 @@ router_v1.register(
 
 urlpatterns = [
     path('v1/', include(router_v1.urls)),
+    path('v1/auth/token/', views.UserToken.as_view(), name='token')
 ]

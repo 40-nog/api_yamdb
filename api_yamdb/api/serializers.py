@@ -89,6 +89,13 @@ class UserSignup(serializers.ModelSerializer):
 class UserToken(serializers.ModelSerializer):
     """Сериализатор для получения токена."""
 
+    username = serializers.SlugRelatedField(
+        read_only=True,
+        default=serializers.CurrentUserDefault(),
+        slug_field='username',
+        source='user'
+    )
+
     class Meta:
         fields = ('username', 'confirmation_code', )
         model = UserCode

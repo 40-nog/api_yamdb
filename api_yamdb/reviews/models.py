@@ -10,8 +10,21 @@ class Category(models.Model):
 
 
 class Genre(models.Model):
-    name = models.CharField(max_length=256)
+    name = models.CharField('Название', max_length=256)
     slug = models.SlugField(max_length=50, unique=True)
+
+
+class TitleGenre(models.Model):
+    title = models.ForeignKey(
+        'Title',
+        on_delete=models.CASCADE,
+        related_name='titles',
+    )
+    genre = models.ForeignKey(
+        Genre,
+        on_delete=models.CASCADE,
+        related_name='genres'
+    )
 
 
 class Title(models.Model):
@@ -21,7 +34,7 @@ class Title(models.Model):
     description = models.TextField(blank=True)
     genre = models.ManyToManyField(
         Genre,
-        # through='TitleGenre'
+        through='TitleGenre'
     )
     category = models.ForeignKey(
         Category,
@@ -29,19 +42,6 @@ class Title(models.Model):
         blank=True,
         null=True
     )
-
-
-# class TitleGenre(models.Model):
-#     title = models.ForeignKey(
-#         Title,
-#         on_delete=models.CASCADE,
-#         related_name='titles',
-#     )
-#     genre = models.ForeignKey(
-#         Genre,
-#         on_delete=models.CASCADE,
-#         related_name='genres'
-#     )
 
 
 class Review(models.Model):
