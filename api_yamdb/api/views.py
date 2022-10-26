@@ -1,14 +1,15 @@
+from uuid import uuid4
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
-from django.contrib.auth.tokens import default_token_generator
 from rest_framework import viewsets
-from rest_framework.views import APIView
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAdminUser, AllowAny
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import AccessToken
 
 from reviews.models import Title, Review, Genre, Category
 from api import serializers, permissions, mixins
-from users.models import User, UserCode
+from users.models import User
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -106,16 +107,16 @@ class UserSignup(mixins.CreateViewSet):
     def create(self, request):
         """Обработка пост запроса."""
         serializer = serializers.UserSignup(data=request.data)
-        exists = User.objects.filter(
-            username=request.data['username']).exists()
-        if not exists and serializer.is_valid():
+
+        if serializer.is_valid():
             serializer.save()
-            code = 'qwerty'
+            code = uuid4()
             user = User.objects.get(
                 username=serializer.data['username']
             )
-            UserCode.objects.create(user=user, confirmation_code=code)
-            user_email = serializer.data['email']
+            user.confirmation_code = code
+            user.save()
+            user_email = user.email
             send_mail(
                 'Код подтверждения',
                 f'Используй этот код {code}',
@@ -125,16 +126,14 @@ class UserSignup(mixins.CreateViewSet):
             return Response(serializer.data)
 
 
-class UserToken(APIView):
-    """Возвращает JWT-токен."""
-
-    def post(self, request):
-        """Создание токена."""
-        serializer = serializers.UserToken(data=request.data)
-        if serializer.is_valid():
-            user = get_object_or_404(
-                User,
-                username=serializer.data['username']
-            )
-            cur_token = default_token_generator.make_token(user)
-            return Response({"token": cur_token})
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def get_tokens_for_user(request):
+    """Создание JWT-токена."""
+    confirmation_code = request.data['confirmation_code']
+    user = User.objects.get(
+        username=request.data['username']
+    )
+    if confirmation_code == user.confirmation_code:
+        access = AccessToken.for_user(user)
+        return Response({'token': str(access), })

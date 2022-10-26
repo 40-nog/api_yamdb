@@ -15,11 +15,4 @@ class User(AbstractUser):
         blank=True,
     )
     role = models.CharField(max_length=16, choices=CHOICES)
-
-
-class UserCode(models.Model):
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-    )
-    confirmation_code = models.CharField(max_length=10)
+    confirmation_code = models.CharField(max_length=50, blank=True)

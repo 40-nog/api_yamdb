@@ -2,7 +2,7 @@ from datetime import datetime
 from rest_framework import serializers
 
 from reviews.models import Title, Review, Comment, Category, Genre
-from users.models import User, UserCode
+from users.models import User
 
 
 class TitleSerializer(serializers.ModelSerializer):
@@ -84,18 +84,3 @@ class UserSignup(serializers.ModelSerializer):
     class Meta:
         fields = ('username', 'email', )
         model = User
-
-
-class UserToken(serializers.ModelSerializer):
-    """Сериализатор для получения токена."""
-
-    username = serializers.SlugRelatedField(
-        read_only=True,
-        default=serializers.CurrentUserDefault(),
-        slug_field='username',
-        source='user'
-    )
-
-    class Meta:
-        fields = ('username', 'confirmation_code', )
-        model = UserCode
