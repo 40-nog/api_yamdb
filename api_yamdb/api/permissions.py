@@ -3,14 +3,24 @@ from rest_framework.permissions import (SAFE_METHODS, AllowAny,
                                         IsAuthenticatedOrReadOnly)
 
 
+class IsAdminUser(IsAuthenticated):
+    """Только админу разрешается редактирование."""
+
+    def has_permission(self, request, view):
+        return request.user.role == 'admin'
+
+
 class IsAdminOrReadOnly(AllowAny):
     """Только админу разрешается редактирование."""
 
     def has_permission(self, request, view):
-        return (
-            request.method in SAFE_METHODS
-            or request.user.role == 'admin'
-        )
+        if request.user.is_authenticated:
+            return (
+                request.method in SAFE_METHODS
+                or request.user.role == 'admin'
+            )
+        else:
+            return request.method in SAFE_METHODS
 
 
 class IsStaffOrAuthorOrReadOnly(IsAuthenticatedOrReadOnly):
@@ -23,15 +33,17 @@ class IsStaffOrAuthorOrReadOnly(IsAuthenticatedOrReadOnly):
             request.method in SAFE_METHODS
             or obj.author == request.user
             or request.user.role in ('admin', 'moderator')
+            or request.user.is_staff
         )
 
 
 class PatchOrReadOnly(IsAuthenticated):
     """Разрешено только чтение и частичное редактирование своего профиля."""
 
-    def has_object_permission(self, request, view, obj):
+    # def has_object_permission(self, request, view, obj):
+    def has_permission(self, request, view):
         return (
             request.method in ('GET', 'PATCH')
-            and obj == request.user
+            # and obj == request.user
         )
         # Здесь возможна ошибка из-за приоритетности операций.

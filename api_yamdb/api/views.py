@@ -3,10 +3,10 @@ from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 from rest_framework import viewsets
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAdminUser, AllowAny
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
-from django.contrib.auth.tokens import default_token_generator
+# from django.contrib.auth.tokens import default_token_generator
 
 from reviews.models import Title, Review, Genre, Category
 from api import serializers, permissions, mixins
@@ -84,7 +84,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     queryset = User.objects.all()
     serializer_class = serializers.UserSerializer
-    permission_classes = (IsAdminUser, )
+    permission_classes = (permissions.IsAdminUser, )
 
 
 class MyProfileViewSet(viewsets.ModelViewSet):
@@ -96,32 +96,53 @@ class MyProfileViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.PatchOrReadOnly, )
 
     def get_queryset(self):
-        return self.request.user
+        print(self.request.user)
+        return User.objects.filter(username=self.request.user.username)
 
 
 class UserSignup(mixins.CreateViewSet):
     """Регистрация нового пользователя."""
-    serializer_class = serializers.UserSignupSerializer
+    # serializer_class = serializers.UserSignupSerializer
     queryset = User.objects.all()
     permission_classes = (AllowAny, )
+    http_method_names = ['post']
 
-    def post(self, request):
+    def create(self, request):
         """Обработка пост запроса."""
+        # serializer = serializers.UserSignupSerializer(data=request.data)
+
+        # serializer.is_valid(raise_exception=True)
+        # serializer.save()
+        # user = get_object_or_404(
+        #     User,
+        #     username=serializer.validated_data['username']
+        # )
+        # confirmation_code = default_token_generator.make_token(user)
+        # send_mail(
+        #     subject='Код подтверждения',
+        #     message=(f'Используй этот код {confirmation_code}'),
+        #     rrom_email=None,
+        #     recipient_list=[user.email],
+        # )
+        # return Response(serializer.data)
         serializer = serializers.UserSignupSerializer(data=request.data)
 
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        user = get_object_or_404(
-            User,
-            username=serializer.validated_data['username']
-        )
-        confirmation_code = default_token_generator.make_token(user)
-        send_mail(
-            subject='Код подтверждения',
-            message=(f'Используй этот код {confirmation_code}'),
-            rrom_email=None,
-            recipient_list=[user.email],
-        )
+        if serializer.is_valid():
+            serializer.save()
+            code = uuid4()
+            user = User.objects.get(
+                username=serializer.data['username']
+            )
+            user.confirmation_code = code
+            user.save()
+            user_email = user.email
+            send_mail(
+                'Код подтверждения',
+                f'Используй этот код {code}',
+                'auth@yamdb.ru',
+                [f'{user_email}'],
+            )
+            return Response(serializer.data)
         return Response(serializer.data)
 
 
