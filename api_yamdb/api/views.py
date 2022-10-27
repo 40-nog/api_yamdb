@@ -6,11 +6,13 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAdminUser, AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
+from django.contrib.auth.tokens import default_token_generator
 
 from reviews.models import Title, Review, Genre, Category
 from api import serializers, permissions, mixins
 from users.models import User
 
+from rest_framework.pagination import PageNumberPagination
 
 class TitleViewSet(viewsets.ModelViewSet):
     """
@@ -57,7 +59,7 @@ class CategoryViewSet(mixins.ListCreateDeleteViewSet):
     queryset = Category.objects.all()
     serializer_class = serializers.CategorySerializer
     permission_classes = (permissions.IsAdminOrReadOnly, )
-
+    #pagination_class = PageNumberPagination
 
 class CommentViewSet(viewsets.ModelViewSet):
     """
@@ -100,30 +102,28 @@ class MyProfileViewSet(viewsets.ModelViewSet):
 
 class UserSignup(mixins.CreateViewSet):
     """Регистрация нового пользователя."""
-
+    serializer_class = serializers.UserSignupSerializer
     queryset = User.objects.all()
     permission_classes = (AllowAny, )
 
-    def create(self, request):
+    def post(self, request):
         """Обработка пост запроса."""
-        serializer = serializers.UserSignup(data=request.data)
+        serializer = serializers.UserSignupSerializer(data=request.data)
 
-        if serializer.is_valid():
-            serializer.save()
-            code = uuid4()
-            user = User.objects.get(
-                username=serializer.data['username']
-            )
-            user.confirmation_code = code
-            user.save()
-            user_email = user.email
-            send_mail(
-                'Код подтверждения',
-                f'Используй этот код {code}',
-                'auth@yamdb.ru',
-                [f'{user_email}'],
-            )
-            return Response(serializer.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        user = get_object_or_404(
+            User,
+            username=serializer.validated_data['username']
+        )
+        confirmation_code = default_token_generator.make_token(user)
+        send_mail(
+            subject='Код подтверждения',
+            message=(f'Используй этот код {confirmation_code}'),
+            rrom_email=None,
+            recipient_list=[user.email],
+        )
+        return Response(serializer.data)
 
 
 @api_view(['POST'])
