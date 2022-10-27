@@ -1,7 +1,7 @@
 from datetime import datetime
-from rest_framework import serializers
 
-from reviews.models import Title, Review, Comment, Category, Genre
+from rest_framework import serializers
+from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
 
 
@@ -9,7 +9,13 @@ class TitleSerializer(serializers.ModelSerializer):
     """Сериализатор для произведений."""
 
     class Meta:
-        fields = '__all__'
+        fields = ('id',
+                  'name',
+                  'year',
+                  'rating',
+                  'description',
+                  'genre',
+                  'category')
         model = Title
 
     def validate_year(self, value):
@@ -29,7 +35,12 @@ class ReviewSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = '__all__'
+        fields = ('id',
+                  'text',
+                  'author',
+                  'score',
+                  'pub_date',
+                  'title')
         model = Review
 
 
@@ -78,9 +89,22 @@ class UserSerializer(serializers.ModelSerializer):
         return value
 
 
-class UserSignup(serializers.ModelSerializer):
+class UserSignupSerializer(serializers.ModelSerializer):
     """Сериализатор регистрации пользователя."""
+    email = serializers.EmailField(max_length=100)
+    username = serializers.CharField(max_length=70)
 
     class Meta:
         fields = ('username', 'email', )
         model = User
+
+    def validate_username(self, value):
+        if value == 'None' or value == 'me':
+            raise serializers.ValidationError(
+                'Заполните поле, либо не используйте me')
+        return value
+
+    def validate_email(self, value):
+        if value == 'None':
+            raise serializers.ValidationError('Заполните поля регистрации!')
+        return value
