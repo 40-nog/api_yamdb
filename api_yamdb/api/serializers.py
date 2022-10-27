@@ -1,5 +1,6 @@
 from datetime import datetime
 
+
 from rest_framework import serializers
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
@@ -89,8 +90,10 @@ class UserSerializer(serializers.ModelSerializer):
         return value
 
 
-class UserSignupSerializer(serializers.ModelSerializer):
+class UserSignupSerializerSerializer(serializers.ModelSerializer):
     """Сериализатор регистрации пользователя."""
+    email = serializers.EmailField(max_length=100)
+    username = serializers.CharField(max_length=70)
     email = serializers.EmailField(max_length=100)
     username = serializers.CharField(max_length=70)
 
@@ -98,6 +101,16 @@ class UserSignupSerializer(serializers.ModelSerializer):
         fields = ('username', 'email', )
         model = User
 
+    def validate_username(self, value):
+        if value == 'None' or value == 'me':
+            raise serializers.ValidationError(
+                'Заполните поле, либо не используйте me')
+        return value
+
+    def validate_email(self, value):
+        if value == 'None':
+            raise serializers.ValidationError('Заполните поля регистрации!')
+        return value
     def validate_username(self, value):
         if value == 'None' or value == 'me':
             raise serializers.ValidationError(
