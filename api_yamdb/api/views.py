@@ -50,6 +50,8 @@ class GenreViewSet(mixins.ListCreateDeleteViewSet):
     queryset = Genre.objects.all()
     serializer_class = serializers.GenreSerializer
     permission_classes = (permissions.IsAdminOrReadOnly, )
+    pagination_class = PageNumberPagination
+    lookup_field = 'slug'
 
 
 class CategoryViewSet(mixins.ListCreateDeleteViewSet):
@@ -61,6 +63,8 @@ class CategoryViewSet(mixins.ListCreateDeleteViewSet):
     serializer_class = serializers.CategorySerializer
     permission_classes = (permissions.IsAdminOrReadOnly, )
     pagination_class = PageNumberPagination
+    lookup_field = 'slug'
+    
 
 class CommentViewSet(viewsets.ModelViewSet):
     """
