@@ -14,9 +14,27 @@ class Genre(models.Model):
     slug = models.SlugField(max_length=50, unique=True)
 
 
+class Title(models.Model):
+    name = models.CharField(max_length=250)
+    year = models.IntegerField()
+    rating = models.IntegerField(null=True)
+    description = models.TextField(blank=True)
+    genre = models.ManyToManyField(
+        Genre,
+        through='TitleGenre',
+        blank=True
+    )
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True
+    )
+
+
 class TitleGenre(models.Model):
     title = models.ForeignKey(
-        'Title',
+        Title,
         on_delete=models.CASCADE,
         related_name='titles',
     )
@@ -24,23 +42,6 @@ class TitleGenre(models.Model):
         Genre,
         on_delete=models.CASCADE,
         related_name='genres'
-    )
-
-
-class Title(models.Model):
-    name = models.CharField(max_length=250)
-    year = models.IntegerField()
-    rating = models.IntegerField()
-    description = models.TextField(blank=True)
-    genre = models.ManyToManyField(
-        Genre,
-        through='TitleGenre'
-    )
-    category = models.ForeignKey(
-        Category,
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True
     )
 
 
