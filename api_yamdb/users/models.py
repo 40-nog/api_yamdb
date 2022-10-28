@@ -19,6 +19,10 @@ class User(AbstractUser):
         ('moderator', 'Модератор'),
         ('admin', 'Администратор')
     )
+
+    email = models.EmailField(max_length=254, unique=True, blank=False)
+    first_name = models.CharField(max_length=150, blank=True)
+    last_name = models.CharField(max_length=150, blank=True)
     
     bio = models.TextField(
         'Биография',

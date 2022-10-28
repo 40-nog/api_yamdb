@@ -14,6 +14,7 @@ from users.models import User
 
 from rest_framework.pagination import PageNumberPagination
 
+
 class TitleViewSet(viewsets.ModelViewSet):
     """
     Обработка операций с произведениями.
@@ -91,6 +92,7 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = serializers.UserSerializer
     permission_classes = (IsAdminUser, )
+    lookup_field = 'username'
 
 
 class MyProfileViewSet(viewsets.ModelViewSet):
