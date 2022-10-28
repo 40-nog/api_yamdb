@@ -90,7 +90,7 @@ class UserSerializer(serializers.ModelSerializer):
         return value
 
 
-class UserSignupSerializerSerializer(serializers.ModelSerializer):
+class UserSignupSerializer(serializers.ModelSerializer):
     """Сериализатор регистрации пользователя."""
     email = serializers.EmailField(max_length=100)
     username = serializers.CharField(max_length=70)

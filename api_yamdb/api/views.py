@@ -22,6 +22,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = serializers.TitleSerializer
     permission_classes = (permissions.IsAdminOrReadOnly, )
+    pagination_class = PageNumberPagination
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -59,7 +60,7 @@ class CategoryViewSet(mixins.ListCreateDeleteViewSet):
     queryset = Category.objects.all()
     serializer_class = serializers.CategorySerializer
     permission_classes = (permissions.IsAdminOrReadOnly, )
-    #pagination_class = PageNumberPagination
+    pagination_class = PageNumberPagination
 
 class CommentViewSet(viewsets.ModelViewSet):
     """
