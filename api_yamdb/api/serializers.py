@@ -124,6 +124,9 @@ class UserSignupSerializer(serializers.ModelSerializer):
         return value
 
     def validate_email(self, value):
-        if value is None:
+        exists = User.objects.filter(
+            email=value
+        ).exists()
+        if value is None or exists:
             raise serializers.ValidationError('Заполните поля регистрации!')
         return value

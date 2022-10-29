@@ -41,12 +41,9 @@ class IsStaffOrAuthorOrReadOnly(IsAuthenticatedOrReadOnly):
         )
 
 
-class PatchOrReadOnly(IsAuthenticated):
+class IsUser(IsAuthenticated):
     """Разрешено только чтение и частичное редактирование своего профиля."""
 
     def has_object_permission(self, request, view, obj):
-        return (
-            request.method in ('GET', 'PATCH')
-            and obj == request.user
-        )
+        return obj == request.user
         # Здесь возможна ошибка из-за приоритетности операций.

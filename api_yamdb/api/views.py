@@ -1,4 +1,4 @@
-# from uuid import uuid4
+from http import HTTPStatus
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 from rest_framework import viewsets, filters
@@ -102,17 +102,26 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.UserSerializer
     permission_classes = (permissions.IsAdminUser, )
 
+    def perform_update(self, serializer):
+        print(serializer)
+        serializer.save()
+
 
 class MyProfileViewSet(viewsets.ModelViewSet):
     """
     Запрос и изменение данных своего профиля.
     """
 
+    http_method_names = ['get', 'patch']
     serializer_class = serializers.UserSerializer
-    permission_classes = (permissions.PatchOrReadOnly, IsAuthenticated, )
+    permission_classes = (permissions.IsUser, IsAuthenticated, )
 
     def get_queryset(self):
         return User.objects.get(username=self.request.user.username)
+
+    def perform_update(self, serializer):
+        print(serializer)
+        serializer.save()
 
 
 class UserSignup(mixins.CreateViewSet):
@@ -149,10 +158,15 @@ class UserSignup(mixins.CreateViewSet):
 @permission_classes([AllowAny])
 def get_tokens_for_user(request):
     """Создание JWT-токена."""
-    confirmation_code = request.data['confirmation_code']
-    user = User.objects.get(
-        username=request.data['username']
-    )
-    if confirmation_code == user.confirmation_code:
-        access = AccessToken.for_user(user)
-        return Response({'token': str(access), })
+    if 'username' in request.data:
+        user = get_object_or_404(
+            User,
+            username=request.data['username']
+        )
+        if 'confirmation_code' in request.data:
+            confirmation_code = request.data['confirmation_code']
+            if confirmation_code == user.confirmation_code:
+                access = AccessToken.for_user(user)
+                return Response({'token': str(access), })
+        return Response(request.data, HTTPStatus.BAD_REQUEST)
+    return Response(request.data, HTTPStatus.BAD_REQUEST)
