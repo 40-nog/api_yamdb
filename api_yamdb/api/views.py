@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 from rest_framework import viewsets
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAdminUser, AllowAny
+from rest_framework.permissions import IsAdminUser, AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from django.contrib.auth.tokens import default_token_generator
@@ -15,6 +15,8 @@ from api import serializers, permissions, mixins
 from users.models import User
 
 from rest_framework.pagination import PageNumberPagination
+from django_filters.rest_framework import DjangoFilterBackend
+from .filters import TitleFilter
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -26,6 +28,8 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.TitleSerializer
     permission_classes = (permissions.IsAdminOrReadOnly, )
     pagination_class = PageNumberPagination
+    filter_backends = (DjangoFilterBackend, )
+    filterset_class = TitleFilter
     
 
 
@@ -98,7 +102,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     queryset = User.objects.all()
     serializer_class = serializers.UserSerializer
-    permission_classes = (IsAdminUser, )
+    permission_classes = (IsAuthenticated, )
     lookup_field = 'username'
 
 
