@@ -127,7 +127,7 @@ class UserSignup(mixins.CreateViewSet):
         send_mail(
             subject='Код подтверждения',
             message=(f'Используй этот код {confirmation_code}'),
-            rrom_email=None,
+            from_email=None,
             recipient_list=[user.email],
         )
         return Response(serializer.data)
