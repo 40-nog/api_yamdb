@@ -89,7 +89,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор пользователей."""
-
+    
     class Meta:
         fields = (
             'username',
@@ -101,12 +101,16 @@ class UserSerializer(serializers.ModelSerializer):
         )
         model = User
 
-
+from rest_framework.validators import UniqueValidator
 
 class UserSignupSerializer(serializers.ModelSerializer):
     """Сериализатор регистрации пользователя."""
-    email = serializers.EmailField(max_length=100)
-    username = serializers.CharField(max_length=70)
+    email = serializers.EmailField(validators=[
+            UniqueValidator(queryset=User.objects.all())
+         ])
+    username = serializers.CharField(validators=[
+            UniqueValidator(queryset=User.objects.all())
+         ])
 
     class Meta:
         fields = ('username', 'email', )
