@@ -5,7 +5,7 @@ from rest_framework import routers
 app_name = 'api'
 
 router_v1 = routers.DefaultRouter()
-router_v1.register('auth/signup', views.UserSignup)
+router_v1.register('auth/signup', views.UserSignup,)
 router_v1.register(r'users', views.UserViewSet, basename='users')
 router_v1.register(
     'users/me',

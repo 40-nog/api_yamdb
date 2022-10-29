@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAdminUser, AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from django.contrib.auth.tokens import default_token_generator
+from rest_framework import status
 
 
 from reviews.models import Title, Review, Genre, Category
@@ -124,27 +125,26 @@ class UserSignup(mixins.CreateViewSet):
             username=serializer.validated_data['username']
         )
         confirmation_code = default_token_generator.make_token(user)
+        user.confirmation_code = confirmation_code
+        user.save()
         send_mail(
             subject='Код подтверждения',
             message=(f'Используй этот код {confirmation_code}'),
             from_email=None,
             recipient_list=[user.email],
         )
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def get_tokens_for_user(request):
-    serializer = Confirmation_codeSerializer(data=request.data)
-    if serializers.is_valid():
-        confirmation_code = request.data.get('confirmation_code')
-   
-    user = get_object_or_404(
-        User,
-        username=serializer.validated_data['username']
+    """Создание JWT-токена."""
+    confirmation_code = request.data['confirmation_code']
+    user = User.objects.get(
+        username=request.data['username']
     )
-    if default_token_generator.check_token(user, confirmation_code):
-        refresh = RefreshToken.for_user(user)
-
+    if confirmation_code == user.confirmation_code:
+        access = AccessToken.for_user(user)
         return Response({'token': str(access), })
 

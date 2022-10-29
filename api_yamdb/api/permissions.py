@@ -2,27 +2,38 @@ from rest_framework.permissions import (SAFE_METHODS, AllowAny,
                                         IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 
-
-class IsAdminOrReadOnly(AllowAny):
+class IsAdminUser(IsAuthenticated):
     """Только админу разрешается редактирование."""
 
     def has_permission(self, request, view):
-        return request.method in SAFE_METHODS or (
+        return (
             request.user.is_authenticated
-            and (request.user.is_admin or request.user.is_superuser)
+            and (request.user.role == 'admin' or request.user.is_superuser)
         )
+
+class IsAdminOrReadOnly(AllowAny):
+    """Только админу разрешается редактирование."""
+    def has_permission(self, request, view):
+        if request.user.is_authenticated:
+            return (
+                request.method in SAFE_METHODS
+                or request.user.role == 'admin'
+                or request.user.is_superuser
+            )
+        else:
+            return request.method in SAFE_METHODS
 
 
 class IsStaffOrAuthorOrReadOnly(IsAuthenticatedOrReadOnly):
     """
     Только администратору, модератору или автору разрешается редактирование.
     """
-
     def has_object_permission(self, request, view, obj):
         return (
             request.method in SAFE_METHODS
             or obj.author == request.user
             or request.user.role in ('admin', 'moderator')
+            or request.user.is_superuser
         )
 
 
