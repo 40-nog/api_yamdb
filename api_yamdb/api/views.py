@@ -1,12 +1,12 @@
-from uuid import uuid4
+# from uuid import uuid4
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
-from rest_framework import viewsets
+from rest_framework import viewsets, filters
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
-# from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth.tokens import default_token_generator
 
 from reviews.models import Title, Review, Genre, Category
 from api import serializers, permissions, mixins
@@ -37,7 +37,15 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return title.reviews.all()
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        valid = Review.objects.filter(
+            author=self.request.user,
+            title=get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        ).exists()
+        if not valid:
+            serializer.save(
+                author=self.request.user,
+                title=get_object_or_404(Title, id=self.kwargs.get('title_id'))
+            )
 
 
 class GenreViewSet(mixins.ListCreateDeleteViewSet):
@@ -48,6 +56,8 @@ class GenreViewSet(mixins.ListCreateDeleteViewSet):
     queryset = Genre.objects.all()
     serializer_class = serializers.GenreSerializer
     permission_classes = (permissions.IsAdminOrReadOnly, )
+    filter_backends = (filters.SearchFilter, )
+    search_fields = ('name',)
 
 
 class CategoryViewSet(mixins.ListCreateDeleteViewSet):
@@ -69,12 +79,18 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsStaffOrAuthorOrReadOnly, )
 
     def get_queryset(self):
+        title_id = self.kwargs.get('title_id')
+        title = get_object_or_404(Title, id=title_id)
         review_id = self.kwargs.get('review_id')
         review = get_object_or_404(Review, id=review_id)
-        return review.comments.all()
+        if review.title == title:
+            return review.comments.all()
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        serializer.save(
+            author=self.request.user,
+            review=get_object_or_404(Review, id=self.kwargs.get('review_id'))
+        )
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -93,56 +109,39 @@ class MyProfileViewSet(viewsets.ModelViewSet):
     """
 
     serializer_class = serializers.UserSerializer
-    permission_classes = (permissions.PatchOrReadOnly, )
+    permission_classes = (permissions.PatchOrReadOnly, IsAuthenticated, )
 
     def get_queryset(self):
-        print(self.request.user)
-        return User.objects.filter(username=self.request.user.username)
+        return User.objects.get(username=self.request.user.username)
 
 
 class UserSignup(mixins.CreateViewSet):
     """Регистрация нового пользователя."""
-    # serializer_class = serializers.UserSignupSerializer
+    serializer_class = serializers.UserSignupSerializer
     queryset = User.objects.all()
     permission_classes = (AllowAny, )
     http_method_names = ['post']
 
     def create(self, request):
         """Обработка пост запроса."""
-        # serializer = serializers.UserSignupSerializer(data=request.data)
 
-        # serializer.is_valid(raise_exception=True)
-        # serializer.save()
-        # user = get_object_or_404(
-        #     User,
-        #     username=serializer.validated_data['username']
-        # )
-        # confirmation_code = default_token_generator.make_token(user)
-        # send_mail(
-        #     subject='Код подтверждения',
-        #     message=(f'Используй этот код {confirmation_code}'),
-        #     rrom_email=None,
-        #     recipient_list=[user.email],
-        # )
-        # return Response(serializer.data)
         serializer = serializers.UserSignupSerializer(data=request.data)
 
-        if serializer.is_valid():
-            serializer.save()
-            code = uuid4()
-            user = User.objects.get(
-                username=serializer.data['username']
-            )
-            user.confirmation_code = code
-            user.save()
-            user_email = user.email
-            send_mail(
-                'Код подтверждения',
-                f'Используй этот код {code}',
-                'auth@yamdb.ru',
-                [f'{user_email}'],
-            )
-            return Response(serializer.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        user = User.objects.get(
+            username=serializer.validated_data['username']
+        )
+        code = default_token_generator.make_token(user)
+        user.confirmation_code = code
+        user.save()
+        user_email = user.email
+        send_mail(
+            'Код подтверждения',
+            f'Используй этот код {code}',
+            'auth@yamdb.ru',
+            [f'{user_email}'],
+        )
         return Response(serializer.data)
 
 

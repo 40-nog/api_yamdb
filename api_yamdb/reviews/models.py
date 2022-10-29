@@ -1,6 +1,7 @@
 from django.db import models
-
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
+
 from users.models import User
 
 
@@ -61,6 +62,19 @@ class Review(models.Model):
         on_delete=models.CASCADE,
         related_name='reviews'
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['author', 'title'],
+                name='unique_author_title'
+            )
+        ]
+
+    def clean(self):
+        if self.author == self.title:
+            raise ValidationError(
+                'Можно оставлять только один отзыв на произведение.')
 
 
 class Comment(models.Model):
