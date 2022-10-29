@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from django.contrib.auth.tokens import default_token_generator
 from rest_framework import status
-
+from rest_framework import filters
 
 from reviews.models import Title, Review, Genre, Category
 from api import serializers, permissions, mixins
@@ -26,6 +26,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.TitleSerializer
     permission_classes = (permissions.IsAdminOrReadOnly, )
     pagination_class = PageNumberPagination
+    
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -55,6 +56,8 @@ class GenreViewSet(mixins.ListCreateDeleteViewSet):
     permission_classes = (permissions.IsAdminOrReadOnly, )
     pagination_class = PageNumberPagination
     lookup_field = 'slug'
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
 
 class CategoryViewSet(mixins.ListCreateDeleteViewSet):
@@ -67,6 +70,8 @@ class CategoryViewSet(mixins.ListCreateDeleteViewSet):
     permission_classes = (permissions.IsAdminOrReadOnly, )
     pagination_class = PageNumberPagination
     lookup_field = 'slug'
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
     
 
 class CommentViewSet(viewsets.ModelViewSet):
