@@ -7,6 +7,8 @@ from rest_framework.permissions import IsAdminUser, AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from django.contrib.auth.tokens import default_token_generator
+from rest_framework import status
+
 
 from reviews.models import Title, Review, Genre, Category
 from api import serializers, permissions, mixins
@@ -116,7 +118,6 @@ class UserSignup(mixins.CreateViewSet):
     def post(self, request):
         """Обработка пост запроса."""
         serializer = serializers.UserSignupSerializer(data=request.data)
-
         serializer.is_valid(raise_exception=True)
         serializer.save()
         user = get_object_or_404(
@@ -124,13 +125,15 @@ class UserSignup(mixins.CreateViewSet):
             username=serializer.validated_data['username']
         )
         confirmation_code = default_token_generator.make_token(user)
+        user.confirmation_code = confirmation_code
+        user.save()
         send_mail(
             subject='Код подтверждения',
             message=(f'Используй этот код {confirmation_code}'),
-            rrom_email=None,
+            from_email=None,
             recipient_list=[user.email],
         )
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
@@ -144,3 +147,4 @@ def get_tokens_for_user(request):
     if confirmation_code == user.confirmation_code:
         access = AccessToken.for_user(user)
         return Response({'token': str(access), })
+
