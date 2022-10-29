@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from django.contrib.auth.tokens import default_token_generator
 
+
 from reviews.models import Title, Review, Genre, Category
 from api import serializers, permissions, mixins
 from users.models import User
@@ -116,7 +117,6 @@ class UserSignup(mixins.CreateViewSet):
     def post(self, request):
         """Обработка пост запроса."""
         serializer = serializers.UserSignupSerializer(data=request.data)
-
         serializer.is_valid(raise_exception=True)
         serializer.save()
         user = get_object_or_404(
@@ -134,13 +134,17 @@ class UserSignup(mixins.CreateViewSet):
 
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
 def get_tokens_for_user(request):
-    """Создание JWT-токена."""
-    confirmation_code = request.data['confirmation_code']
-    user = User.objects.get(
-        username=request.data['username']
+    serializer = Confirmation_codeSerializer(data=request.data)
+    if serializers.is_valid():
+        confirmation_code = request.data.get('confirmation_code')
+   
+    user = get_object_or_404(
+        User,
+        username=serializer.validated_data['username']
     )
-    if confirmation_code == user.confirmation_code:
-        access = AccessToken.for_user(user)
+    if default_token_generator.check_token(user, confirmation_code):
+        refresh = RefreshToken.for_user(user)
+
         return Response({'token': str(access), })
+
