@@ -25,7 +25,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
     queryset = Title.objects.all()
     serializer_class = serializers.TitleSerializer
-    permission_classes = (permissions.IsStaffOrAuthorOrReadOnly, )
+    permission_classes = (permissions.IsAdminOrReadOnly, )
     pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend, )
     filterset_class = TitleFilter
