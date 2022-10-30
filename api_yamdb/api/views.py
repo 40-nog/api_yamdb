@@ -1,4 +1,4 @@
-from rest_framework import status
+from rest_framework import status, filters
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 from rest_framework import viewsets, filters
@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from django.contrib.auth.tokens import default_token_generator
 
-from reviews.models import Title, Review, Genre, Category
+from reviews.models import Title, Review, Genre, Category, TitleGenre
 from api import serializers, permissions, mixins
 from users.models import User
 
@@ -21,6 +21,20 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = serializers.TitleSerializer
     permission_classes = (permissions.IsAdminOrReadOnly, )
+
+    # def create(self, request, *args, **kwargs):
+    #     genres = request.data.pop('genre')
+    #     category = request.data.pop('category')
+    #     category_obj = Category.objects.get_or_create(**category)
+    #     title = Title.objects.create(**request.data, category=category_obj)
+    #     for genre in genres:
+    #         obj, status = Genre.objects.get_or_create(**genre)
+    #         TitleGenre.objects.create(
+    #             title=title,
+    #             genre=obj
+    #         )
+
+    #     return title
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -56,6 +70,7 @@ class GenreViewSet(mixins.ListCreateDeleteViewSet):
     queryset = Genre.objects.all()
     serializer_class = serializers.GenreSerializer
     permission_classes = (permissions.IsAdminOrReadOnly, )
+    lookup_field = 'slug'
     filter_backends = (filters.SearchFilter, )
     search_fields = ('name',)
 
@@ -68,6 +83,9 @@ class CategoryViewSet(mixins.ListCreateDeleteViewSet):
     queryset = Category.objects.all()
     serializer_class = serializers.CategorySerializer
     permission_classes = (permissions.IsAdminOrReadOnly, )
+    lookup_field = 'slug'
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
