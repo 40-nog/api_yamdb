@@ -45,5 +45,8 @@ class IsUser(IsAuthenticated):
     """Разрешено только чтение и частичное редактирование своего профиля."""
 
     def has_object_permission(self, request, view, obj):
-        return obj == request.user
+        return (
+            request.method in ('GET', 'HEAD', 'OPTIONS', 'PATCH')
+            and obj == request.user
+        )
         # Здесь возможна ошибка из-за приоритетности операций.

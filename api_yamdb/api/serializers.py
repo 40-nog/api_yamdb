@@ -2,6 +2,7 @@ from datetime import datetime
 from rest_framework import serializers
 # from rest_framework.validators import UniqueTogetherValidator
 
+from api_yamdb.settings import ROLES
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
 
@@ -107,6 +108,13 @@ class UserSerializer(serializers.ModelSerializer):
             'role',
         )
         model = User
+
+    def validate_role(self, value):
+        if value not in ROLES:
+            raise serializers.ValidationError(
+                f'Выберете роль из списка {ROLES}!'
+            )
+        return value
 
 
 class UserSignupSerializer(serializers.ModelSerializer):

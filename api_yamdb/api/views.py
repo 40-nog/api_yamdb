@@ -1,9 +1,9 @@
-from http import HTTPStatus
+from rest_framework import status
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 from rest_framework import viewsets, filters
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from django.contrib.auth.tokens import default_token_generator
@@ -98,30 +98,56 @@ class UserViewSet(viewsets.ModelViewSet):
     Обработка операций с пользователями.
     """
 
-    queryset = User.objects.all()
     serializer_class = serializers.UserSerializer
-    permission_classes = (permissions.IsAdminUser, )
-
-    def perform_update(self, serializer):
-        print(serializer)
-        serializer.save()
-
-
-class MyProfileViewSet(viewsets.ModelViewSet):
-    """
-    Запрос и изменение данных своего профиля.
-    """
-
-    http_method_names = ['get', 'patch']
-    serializer_class = serializers.UserSerializer
-    permission_classes = (permissions.IsUser, IsAuthenticated, )
+    lookup_field = 'username'
 
     def get_queryset(self):
-        return User.objects.get(username=self.request.user.username)
+        if self.request.path == '/api/v1/users/me/':
+            return User.objects.get(id=self.request.user.id)
+        else:
+            return User.objects.all()
 
-    def perform_update(self, serializer):
-        print(serializer)
-        serializer.save()
+    def get_object(self):
+        if self.request.path == '/api/v1/users/me/':
+            return User.objects.get(id=self.request.user.id)
+        return super().get_object()
+
+    def get_permissions(self):
+        if self.request.path == '/api/v1/users/me/':
+            permission_classes = (permissions.IsUser, )
+        else:
+            permission_classes = (permissions.IsAdminUser, )
+        return [permission() for permission in permission_classes]
+
+    def destroy(self, request, *args, **kwargs):
+        if self.request.path == '/api/v1/users/me/':
+            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def partial_update(self, request, *args, **kwargs):
+        not_valid = (
+            request.data.get('role') != self.request.user.role
+            and request.data.get('role') is not None
+        )
+        admin = request.user.role == 'admin' or request.user.is_superuser
+
+        if 'role' in request.data and (not admin or not_valid):
+            user = User.objects.get(id=self.request.user.id)
+            serializer = self.get_serializer(user)
+            return Response(
+                serializer.data,
+                status=status.HTTP_400_BAD_REQUEST)
+        else:
+            kwargs['partial'] = True
+            return self.update(request, *args, **kwargs)
+
+    @action(detail=True, methods=['get', 'patch'], url_path='me')
+    def my_profile(self, request):
+        user = User.objects.get(id=self.request.user.id)
+        serializer = self.get_serializer(user)
+        return Response(serializer.data)
 
 
 class UserSignup(mixins.CreateViewSet):
@@ -135,7 +161,6 @@ class UserSignup(mixins.CreateViewSet):
         """Обработка пост запроса."""
 
         serializer = serializers.UserSignupSerializer(data=request.data)
-
         serializer.is_valid(raise_exception=True)
         serializer.save()
         user = User.objects.get(
@@ -168,5 +193,5 @@ def get_tokens_for_user(request):
             if confirmation_code == user.confirmation_code:
                 access = AccessToken.for_user(user)
                 return Response({'token': str(access), })
-        return Response(request.data, HTTPStatus.BAD_REQUEST)
-    return Response(request.data, HTTPStatus.BAD_REQUEST)
+        return Response(request.data, status=status.HTTP_400_BAD_REQUEST)
+    return Response(request.data, status=status.HTTP_400_BAD_REQUEST)
