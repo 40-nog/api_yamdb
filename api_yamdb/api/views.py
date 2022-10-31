@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from django.contrib.auth.tokens import default_token_generator
 
-from reviews.models import Title, Review, Genre, Category, TitleGenre
+from reviews.models import Title, Review, Genre, Category
 from api import serializers, permissions, mixins
 from users.models import User
 
@@ -22,19 +22,43 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.TitleSerializer
     permission_classes = (permissions.IsAdminOrReadOnly, )
 
-    # def create(self, request, *args, **kwargs):
-    #     genres = request.data.pop('genre')
-    #     category = request.data.pop('category')
-    #     category_obj = Category.objects.get_or_create(**category)
-    #     title = Title.objects.create(**request.data, category=category_obj)
-    #     for genre in genres:
-    #         obj, status = Genre.objects.get_or_create(**genre)
-    #         TitleGenre.objects.create(
-    #             title=title,
-    #             genre=obj
-    #         )
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return serializers.TitleCreateSerializer
+        return serializers.TitleSerializer
 
-    #     return title
+    # def create(self, request, *args, **kwargs):
+    #     serializer = self.get_serializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+
+    #     if 'genre' in serializer.data:
+    #         genres = serializer.data.pop('genre')
+
+    #     if 'category' in serializer.data:
+    #         category = serializer.data.pop('category')
+
+    #     serializer.save()
+    #     title = Title.objects.get(**serializer.data)
+
+    #     if 'genres' in locals():
+    #         for genre in genres:
+    #             genre_obj = get_object_or_404(
+    #                 Genre,
+    #                 slug=genre
+    #             )
+    #             TitleGenre.objects.create(
+    #                 title=title,
+    #                 genre=genre_obj
+    #             )
+
+    #     if 'category' in locals():
+    #         title.category = get_object_or_404(
+    #             Category,
+    #             slug=category
+    #         )
+    #         title.save()
+
+    #     return Response(serializer.data)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
