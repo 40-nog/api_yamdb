@@ -7,10 +7,13 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from django.contrib.auth.tokens import default_token_generator
-
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.pagination import PageNumberPagination
+from django.db.models import Avg
 from reviews.models import Title, Review, Genre, Category, TitleGenre
 from api import serializers, permissions, mixins
 from users.models import User
+from .filters import TitleFilter
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -21,6 +24,9 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = serializers.TitleSerializer
     permission_classes = (permissions.IsAdminOrReadOnly, )
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = TitleFilter
+    
 
     # def create(self, request, *args, **kwargs):
     #     genres = request.data.pop('genre')
@@ -44,7 +50,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     serializer_class = serializers.ReviewSerializer
     permission_classes = (permissions.IsStaffOrAuthorOrReadOnly, )
-
+    
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
         title = get_object_or_404(Title, id=title_id)

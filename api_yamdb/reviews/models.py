@@ -9,10 +9,16 @@ class Category(models.Model):
     name = models.CharField(max_length=256)
     slug = models.SlugField(max_length=50, unique=True)
 
+    class Meta:
+        ordering = ['-id']
+
 
 class Genre(models.Model):
     name = models.CharField('Название', max_length=256)
     slug = models.SlugField(max_length=50, unique=True)
+
+    class Meta:
+        ordering = ['-id']
 
 
 class Title(models.Model):
@@ -29,8 +35,12 @@ class Title(models.Model):
         Category,
         on_delete=models.SET_NULL,
         blank=True,
-        null=True
+        null=True,
+        related_name='titles',
     )
+
+    class Meta:
+        ordering = ['-id']
 
 
 class TitleGenre(models.Model):
@@ -47,12 +57,13 @@ class TitleGenre(models.Model):
 
 
 class Review(models.Model):
-    text = models.TextField()
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='reviews'
     )
+    text = models.TextField(null=False)
+    
     score = models.IntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(10)]
     )
@@ -64,10 +75,11 @@ class Review(models.Model):
     )
 
     class Meta:
+        ordering = ['-pub_date',]
         constraints = [
             models.UniqueConstraint(
                 fields=['author', 'title'],
-                name='unique_author_title'
+                name='unique_review'
             )
         ]
 
@@ -90,3 +102,6 @@ class Comment(models.Model):
     )
     text = models.TextField()
     pub_date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-pub_date",)

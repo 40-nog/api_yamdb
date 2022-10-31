@@ -36,7 +36,7 @@ class TitleSerializer(serializers.ModelSerializer):
 
     genre = GenreSerializer(read_only=True, many=True)
     category = CategorySerializer(read_only=True)
-
+    
     class Meta:
         fields = ('id',
                   'name',
@@ -56,13 +56,13 @@ class TitleSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор отзывов."""
-
+    
     author = serializers.SlugRelatedField(
         read_only=True,
         default=serializers.CurrentUserDefault(),
         slug_field='username'
     )
-
+    
     class Meta:
         fields = ('id',
                   'text',
@@ -80,10 +80,13 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     """Сериализатор комментариев."""
-
+    review = serializers.SlugRelatedField(
+        slug_field='text',
+        read_only=True
+    )
     author = serializers.SlugRelatedField(
         read_only=True,
-        default=serializers.CurrentUserDefault(),
+        #default=serializers.CurrentUserDefault(),
         slug_field='username'
     )
 
@@ -106,12 +109,12 @@ class UserSerializer(serializers.ModelSerializer):
         )
         model = User
 
-    def validate_role(self, value):
-        if value not in ROLES:
-            raise serializers.ValidationError(
-                f'Выберете роль из списка {ROLES}!'
-            )
-        return value
+    #def validate_role(self, value):
+    #    if value not in ROLES:
+    #        raise serializers.ValidationError(
+    #            f'Выберете роль из списка {ROLES}!'
+    #        )
+    #    return value
 
 
 class UserSignupSerializer(serializers.ModelSerializer):
