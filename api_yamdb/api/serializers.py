@@ -91,7 +91,7 @@ class ReviewSerializer(serializers.ModelSerializer):
             raise ValidationError(
                 'Вы уже писали отзыв к данному произведению'
             )
-        
+
         return data
 
     class Meta:
