@@ -8,9 +8,9 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from django.contrib.auth.tokens import default_token_generator
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.pagination import PageNumberPagination
 from django.db.models import Avg
-from reviews.models import Title, Review, Genre, Category, TitleGenre
+
+from reviews.models import Title, Review, Genre, Category
 from api import serializers, permissions, mixins
 from users.models import User
 from .filters import TitleFilter
@@ -23,29 +23,14 @@ class TitleViewSet(viewsets.ModelViewSet):
 
     queryset = Title.objects.annotate(
         rating=Avg('reviews__score')).order_by('name')
-    #serializer_class = serializers.TitleSerializer
     permission_classes = (permissions.IsAdminOrReadOnly, )
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
-    
+
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
             return serializers.TitleReadSerializer
         return serializers.TitleWriteSerializer
-
-    # def create(self, request, *args, **kwargs):
-    #     genres = request.data.pop('genre')
-    #     category = request.data.pop('category')
-    #     category_obj = Category.objects.get_or_create(**category)
-    #     title = Title.objects.create(**request.data, category=category_obj)
-    #     for genre in genres:
-    #         obj, status = Genre.objects.get_or_create(**genre)
-    #         TitleGenre.objects.create(
-    #             title=title,
-    #             genre=obj
-    #         )
-
-    #     return title
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -55,7 +40,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     serializer_class = serializers.ReviewSerializer
     permission_classes = (permissions.IsStaffOrAuthorOrReadOnly, )
-    
+
     def get_serializer_context(self):
         context = super(ReviewViewSet, self).get_serializer_context()
         title = get_object_or_404(Title, id=self.kwargs.get("title_id"))

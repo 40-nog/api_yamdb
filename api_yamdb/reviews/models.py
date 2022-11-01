@@ -1,6 +1,5 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.core.exceptions import ValidationError
 
 from users.models import User
 
@@ -24,7 +23,6 @@ class Genre(models.Model):
 class Title(models.Model):
     name = models.CharField(max_length=250)
     year = models.IntegerField()
-    #rating = models.IntegerField(null=True)
     description = models.TextField(blank=True)
     genre = models.ManyToManyField(
         Genre,
@@ -63,7 +61,6 @@ class Review(models.Model):
         related_name='reviews'
     )
     text = models.TextField(null=False)
-    
     score = models.IntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(10)]
     )
@@ -75,18 +72,7 @@ class Review(models.Model):
     )
 
     class Meta:
-        ordering = ['-pub_date',]
-        #constraints = [
-        #    models.UniqueConstraint(
-        #        fields=['author', 'title'],
-        #        name='unique_review'
-        #    )
-        #]
-
-    #def clean(self):
-    #    if self.author == self.title:
-    #        raise ValidationError(
-    #            'Можно оставлять только один отзыв на произведение.')
+        ordering = ['-pub_date']
 
 
 class Comment(models.Model):

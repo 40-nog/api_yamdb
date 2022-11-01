@@ -2,7 +2,6 @@ from datetime import datetime
 from django.forms import ValidationError
 from rest_framework import serializers
 
-from api_yamdb.settings import ROLES
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
 
@@ -37,7 +36,7 @@ class TitleReadSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(read_only=True, many=True)
     category = CategorySerializer(read_only=True)
     rating = serializers.IntegerField()
-    
+
     class Meta:
         fields = ('id',
                   'name',
@@ -58,8 +57,14 @@ class TitleReadSerializer(serializers.ModelSerializer):
 class TitleWriteSerializer(serializers.ModelSerializer):
     """Сериализатор для создания произведений."""
 
-    genre = serializers.SlugRelatedField(queryset=Genre.objects.all(), slug_field='slug', many=True)
-    category = serializers.SlugRelatedField(queryset=Category.objects.all(), slug_field='slug')
+    genre = serializers.SlugRelatedField(
+        queryset=Genre.objects.all(),
+        slug_field='slug', many=True
+    )
+    category = serializers.SlugRelatedField(
+        queryset=Category.objects.all(),
+        slug_field='slug'
+    )
 
     class Meta:
         model = Title
@@ -68,7 +73,7 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор отзывов."""
-    
+
     author = serializers.SlugRelatedField(
         read_only=True,
         default=serializers.CurrentUserDefault(),
@@ -81,15 +86,14 @@ class ReviewSerializer(serializers.ModelSerializer):
 
         user = self.context['request'].user
         title_id = self.context['view'].kwargs['title_id']
-        
+
         if Review.objects.filter(author=user, title__id=title_id).exists():
             raise ValidationError(
                 'Вы уже писали отзыв к данному произведению'
             )
         
         return data
-    
-    
+
     class Meta:
         fields = ('id',
                   'text',
