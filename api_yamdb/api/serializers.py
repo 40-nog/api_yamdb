@@ -1,6 +1,6 @@
 from datetime import datetime
+from django.forms import ValidationError
 from rest_framework import serializers
-# from rest_framework.validators import UniqueTogetherValidator
 
 from api_yamdb.settings import ROLES
 from reviews.models import Category, Comment, Genre, Review, Title
@@ -31,11 +31,12 @@ class GenreForTitle(serializers.ModelSerializer):
         model = Genre
 
 
-class TitleSerializer(serializers.ModelSerializer):
-    """Сериализатор для произведений."""
+class TitleReadSerializer(serializers.ModelSerializer):
+    """Сериализатор для просмотра произведений."""
 
     genre = GenreSerializer(read_only=True, many=True)
     category = CategorySerializer(read_only=True)
+    rating = serializers.IntegerField()
     
     class Meta:
         fields = ('id',
@@ -54,6 +55,17 @@ class TitleSerializer(serializers.ModelSerializer):
         return value
 
 
+class TitleWriteSerializer(serializers.ModelSerializer):
+    """Сериализатор для создания произведений."""
+
+    genre = serializers.SlugRelatedField(queryset=Genre.objects.all(), slug_field='slug', many=True)
+    category = serializers.SlugRelatedField(queryset=Category.objects.all(), slug_field='slug')
+
+    class Meta:
+        model = Title
+        fields = '__all__'
+
+
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор отзывов."""
     
@@ -62,6 +74,21 @@ class ReviewSerializer(serializers.ModelSerializer):
         default=serializers.CurrentUserDefault(),
         slug_field='username'
     )
+
+    def validate(self, data):
+        if self.context['request'].method != 'POST':
+            return data
+
+        user = self.context['request'].user
+        title_id = self.context['view'].kwargs['title_id']
+        
+        if Review.objects.filter(author=user, title__id=title_id).exists():
+            raise ValidationError(
+                'Вы уже писали отзыв к данному произведению'
+            )
+        
+        return data
+    
     
     class Meta:
         fields = ('id',
@@ -70,23 +97,17 @@ class ReviewSerializer(serializers.ModelSerializer):
                   'score',
                   'pub_date')
         model = Review
-        # validators = [
-        #     UniqueTogetherValidator(
-        #         queryset=Review.objects.all(),
-        #         fields=('author', 'title')
-        #     )
-        # ]
 
 
 class CommentSerializer(serializers.ModelSerializer):
     """Сериализатор комментариев."""
+
     review = serializers.SlugRelatedField(
         slug_field='text',
         read_only=True
     )
     author = serializers.SlugRelatedField(
         read_only=True,
-        #default=serializers.CurrentUserDefault(),
         slug_field='username'
     )
 
@@ -108,13 +129,6 @@ class UserSerializer(serializers.ModelSerializer):
             'role',
         )
         model = User
-
-    #def validate_role(self, value):
-    #    if value not in ROLES:
-    #        raise serializers.ValidationError(
-    #            f'Выберете роль из списка {ROLES}!'
-    #        )
-    #    return value
 
 
 class UserSignupSerializer(serializers.ModelSerializer):

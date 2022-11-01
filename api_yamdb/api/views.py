@@ -21,12 +21,17 @@ class TitleViewSet(viewsets.ModelViewSet):
     Обработка операций с произведениями.
     """
 
-    queryset = Title.objects.all()
-    serializer_class = serializers.TitleSerializer
+    queryset = Title.objects.annotate(
+        rating=Avg('reviews__score')).order_by('name')
+    #serializer_class = serializers.TitleSerializer
     permission_classes = (permissions.IsAdminOrReadOnly, )
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
     
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return serializers.TitleReadSerializer
+        return serializers.TitleWriteSerializer
 
     # def create(self, request, *args, **kwargs):
     #     genres = request.data.pop('genre')
@@ -51,21 +56,22 @@ class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ReviewSerializer
     permission_classes = (permissions.IsStaffOrAuthorOrReadOnly, )
     
+    def get_serializer_context(self):
+        context = super(ReviewViewSet, self).get_serializer_context()
+        title = get_object_or_404(Title, id=self.kwargs.get("title_id"))
+        context.update({"title": title})
+        return context
+
     def get_queryset(self):
-        title_id = self.kwargs.get('title_id')
-        title = get_object_or_404(Title, id=title_id)
+        title_id = self.kwargs.get("title_id")
+        title = get_object_or_404(Title, pk=title_id)
         return title.reviews.all()
 
     def perform_create(self, serializer):
-        valid = Review.objects.filter(
-            author=self.request.user,
-            title=get_object_or_404(Title, id=self.kwargs.get('title_id'))
-        ).exists()
-        if not valid:
-            serializer.save(
-                author=self.request.user,
-                title=get_object_or_404(Title, id=self.kwargs.get('title_id'))
-            )
+        title_id = self.kwargs.get("title_id")
+        title = get_object_or_404(Title, pk=title_id)
+        serializer.save(author=self.request.user, title=title)
+        return title.reviews.all()
 
 
 class GenreViewSet(mixins.ListCreateDeleteViewSet):

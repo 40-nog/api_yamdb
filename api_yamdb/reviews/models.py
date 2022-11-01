@@ -24,7 +24,7 @@ class Genre(models.Model):
 class Title(models.Model):
     name = models.CharField(max_length=250)
     year = models.IntegerField()
-    rating = models.IntegerField(null=True)
+    #rating = models.IntegerField(null=True)
     description = models.TextField(blank=True)
     genre = models.ManyToManyField(
         Genre,
@@ -76,17 +76,17 @@ class Review(models.Model):
 
     class Meta:
         ordering = ['-pub_date',]
-        constraints = [
-            models.UniqueConstraint(
-                fields=['author', 'title'],
-                name='unique_review'
-            )
-        ]
+        #constraints = [
+        #    models.UniqueConstraint(
+        #        fields=['author', 'title'],
+        #        name='unique_review'
+        #    )
+        #]
 
-    def clean(self):
-        if self.author == self.title:
-            raise ValidationError(
-                'Можно оставлять только один отзыв на произведение.')
+    #def clean(self):
+    #    if self.author == self.title:
+    #        raise ValidationError(
+    #            'Можно оставлять только один отзыв на произведение.')
 
 
 class Comment(models.Model):
