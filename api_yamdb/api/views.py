@@ -41,22 +41,21 @@ class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ReviewSerializer
     permission_classes = (permissions.IsStaffOrAuthorOrReadOnly, )
 
-    def get_serializer_context(self):
-        context = super(ReviewViewSet, self).get_serializer_context()
-        title = get_object_or_404(Title, id=self.kwargs.get("title_id"))
-        context.update({"title": title})
-        return context
-
     def get_queryset(self):
-        title_id = self.kwargs.get("title_id")
-        title = get_object_or_404(Title, pk=title_id)
+        title_id = self.kwargs.get('title_id')
+        title = get_object_or_404(Title, id=title_id)
         return title.reviews.all()
 
     def perform_create(self, serializer):
-        title_id = self.kwargs.get("title_id")
-        title = get_object_or_404(Title, pk=title_id)
-        serializer.save(author=self.request.user, title=title)
-        return title.reviews.all()
+        valid = Review.objects.filter(
+            author=self.request.user,
+            title=get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        ).exists()
+        if not valid:
+            serializer.save(
+                author=self.request.user,
+                title=get_object_or_404(Title, id=self.kwargs.get('title_id'))
+            )
 
 
 class GenreViewSet(mixins.ListCreateDeleteViewSet):
