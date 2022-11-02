@@ -169,6 +169,7 @@ class UserSignup(mixins.CreateViewSet):
     permission_classes = (AllowAny, )
     http_method_names = ['post']
 
+    # а я ведь час безуспешно пыталась
     def create(self, request):
         """Обработка пост запроса."""
 
