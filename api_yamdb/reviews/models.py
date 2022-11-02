@@ -24,7 +24,10 @@ class Genre(models.Model):
 
 class Title(models.Model):
     name = models.CharField(max_length=250, verbose_name='Название')
-    year = models.PositiveSmallIntegerField(db_index=True, verbose_name='Год создания')
+    year = models.PositiveSmallIntegerField(
+        db_index=True,
+        verbose_name='Год создания'
+    )
     description = models.TextField(blank=True, verbose_name='Описание')
     genre = models.ManyToManyField(
         Genre,

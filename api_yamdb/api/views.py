@@ -53,7 +53,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
                 Title,
                 id=self.kwargs.get('title_id')
             )
-            )
+        )
 
 
 class GenreViewSet(mixins.ListCreateDeleteViewSet):
