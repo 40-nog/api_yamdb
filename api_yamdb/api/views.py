@@ -47,14 +47,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return title.reviews.all()
 
     def perform_create(self, serializer):
-        valid = Review.objects.filter(
+        serializer.save(
             author=self.request.user,
-            title=get_object_or_404(Title, id=self.kwargs.get('title_id'))
-        ).exists()
-        if not valid:
-            serializer.save(
-                author=self.request.user,
-                title=get_object_or_404(Title, id=self.kwargs.get('title_id'))
+            title=get_object_or_404(
+                Title,
+                id=self.kwargs.get('title_id')
+            )
             )
 
 
