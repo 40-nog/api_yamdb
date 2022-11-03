@@ -88,6 +88,12 @@ class Review(models.Model):
     class Meta:
         ordering = ['-pub_date']
         verbose_name = 'Отзыв'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['author', 'title'],
+                name='unique_review'
+             )
+        ]
 
 
 class Comment(models.Model):

@@ -12,7 +12,7 @@ class GenreAdmin(admin.ModelAdmin):
 
 class TitleAdmin(admin.ModelAdmin):
     list_display = (
-        'pk', 'name', 'year', 'rating', 'description', 'genre', 'category')
+        'pk', 'name', 'year', 'description',)
 
 
 class ReviewAdmin(admin.ModelAdmin):
